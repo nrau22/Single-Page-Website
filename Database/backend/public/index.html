@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite CRUD</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>SQLite User Management</h2>
+    
+    <h3>Add User</h3>
+    <input type="number" id="age" placeholder="Age" required>
+    <input type="text" id="city" placeholder="City" required>
+    <button onclick="addUser()">Add User</button>
+    
+    <h3>Users List</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Age</th>
+                <th>City</th>
+                <th>Created At</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+    </table>
+    
+    <script>
+        async function fetchUsers() {
+            const response = await fetch('/users');
+            const users = await response.json();
+            const table = document.getElementById('usersTable');
+            table.innerHTML = '';
+            users.forEach(user => {
+                const row = `<tr>
+                    <td>${user.id}</td>
+                    <td>${user.age}</td>
+                    <td>${user.city}</td>
+                    <td>${user.created_at}</td>
+                    <td><button onclick="deleteUser(${user.id})">Delete</button></td>
+                </tr>`;
+                table.innerHTML += row;
+            });
+        }
+        
+        async function addUser() {
+            const age = document.getElementById('age').value;
+            const city = document.getElementById('city').value;
+            if (!age || !city) {
+                alert('Please enter age and city');
+                return;
+            }
+            await fetch('/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ age, city })
+            });
+            document.getElementById('age').value = '';
+            document.getElementById('city').value = '';
+            fetchUsers();
+        }
+        
+        async function deleteUser(id) {
+            await fetch(`/users/${id}`, { method: 'DELETE' });
+            fetchUsers();
+        }
+        
+        fetchUsers();
+    </script>
+</body>
+</html>
